@@ -1,0 +1,21 @@
+[package]
+name = "blitzer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tokio = { version = "1.41.1", features = ["rt", "rt-multi-thread", "macros"] }
+reqwest = { version = "0.12.9", features = ["json"] }
+anyhow = "1.0.93"
+
+derive = { version = "1.0.0" }
+serde = { version = "1.0.215", features = ["derive"] }
+serde_variant = "0.1.3"
+strum = "0.26.3"
+strum_macros = "0.26.3"
+serde_json = "1.0.133"
+
+config = { version = "0.14.0", features = ["toml"] }
+
+mysql = "25.0.1"
+teloxide = "0.13.0"
