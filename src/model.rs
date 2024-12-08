@@ -222,14 +222,14 @@ impl DetailedPoi {
         let poi_type: LocationType = serde_json::from_str(&format!("\"{}\"", cloned_poi.poi_type))
             .expect("Invalid value for LocationType");
         
-        let mut base_message = format!("Attention new point of interest found at {city}: \n\nAdresse: {}\nType: {:?}\nMax speed: {:?}",
+        let mut base_message = format!("Attention: A new point of interest found at {city}: \n\nAddress: {}\nType: {:?}\nMax speed: {}",
                                        cloned_poi.address.street,
                                        poi_type,
                                        cloned_poi.vmax
         );
         
         if cloned_poi.info.desc.is_some() {
-            base_message = format!("{} \nAdditional info: {:?}", base_message, cloned_poi.info.desc.unwrap());
+            base_message = format!("{} \n\nAdditional info: {}", base_message, cloned_poi.info.desc.unwrap());
         }
         
         base_message

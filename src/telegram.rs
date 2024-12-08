@@ -19,5 +19,9 @@ impl TelegramBot {
         where T: Into<String> {
         self.bot.send_message(self.chat_id.clone(), message).await.expect("Should send message")
     }
+    
+    pub async fn send_location(&self, latitude: f64, longitude: f64) -> Message {
+        self.bot.send_location(self.chat_id.clone(), latitude, longitude).await.expect("Should send location")
+    }
 }
 

@@ -70,11 +70,11 @@ impl Repository {
         ).expect("Should write poi to database");
     }
 
-    pub fn get_known_poi_ids(&mut self) -> Vec<String> {
+    pub fn get_known_poi_backend_ids(&mut self) -> Vec<String> {
         let known_blitzer: Vec<String> = self
             .connection
-            .query_map("SELECT id from known_blitzer", |id| id)
-            .expect("Should get poi from database");
+            .query_map("SELECT backend from known_blitzer", |backend| backend)
+            .expect("Should get backend id of poi from database");
 
         known_blitzer
     }
