@@ -1,8 +1,8 @@
-use strum::IntoEnumIterator;
-use crate::{configuration, database};
 use crate::blitzer_api_client::get_blitzer_api_result;
 use crate::model::{BlitzerClientRequestParams, LocationType, Poi};
 use crate::telegram::TelegramBot;
+use crate::{configuration, database};
+use strum::IntoEnumIterator;
 
 pub(crate) async fn handle(telegram_bot: &TelegramBot) -> Result<(), anyhow::Error> {
     println!("Start BlitzerNotifier!");
@@ -30,8 +30,11 @@ pub(crate) async fn handle(telegram_bot: &TelegramBot) -> Result<(), anyhow::Err
         match poi {
             Poi::Detailed(detailed_poi) => {
                 if known_pois.contains(&detailed_poi.backend) {
-                    println!("Found poi in database: {}, {}", detailed_poi.id, detailed_poi.backend);
-                    continue
+                    println!(
+                        "Found poi in database: {}, {}",
+                        detailed_poi.id, detailed_poi.backend
+                    );
+                    continue;
                 }
 
                 new_pois.push(detailed_poi);
@@ -48,14 +51,20 @@ pub(crate) async fn handle(telegram_bot: &TelegramBot) -> Result<(), anyhow::Err
 
     for poi in new_pois.iter().clone() {
         println!("Found new poi: {:?}", poi);
-        telegram_bot.send_message(poi.to_telegram_message()).await;
-        
+        let info_message = telegram_bot.send_message(poi.to_telegram_message()).await;
+
         let latitude = poi.lat.parse::<f64>().expect("Failed to parse latitude");
         let longitude = poi.lng.parse::<f64>().expect("Failed to parse longitude");
-        telegram_bot.send_location(latitude, longitude).await;
-    }
+        let location_message = telegram_bot.send_location(latitude, longitude).await;
 
-    database.add_poi(new_pois);
+        database
+            .add_poi(
+                poi.clone(),
+                info_message.chat.id,
+                info_message.id,
+                location_message.id,
+            );
+    }
 
     Ok(())
 }
