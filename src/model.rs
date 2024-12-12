@@ -231,7 +231,19 @@ impl DetailedPoi {
         if cloned_poi.info.desc.is_some() {
             base_message = format!("{} \n\nAdditional info: {}", base_message, cloned_poi.info.desc.unwrap());
         }
-        
+        base_message = format!("{} \nCreated {}, Confirmed: {}", base_message, format_date(cloned_poi.create_date), format_date(cloned_poi.confirm_date));
+
         base_message
     }
+}
+
+fn format_date(date: String) -> String {
+    if date.eq("01.01.1970") {
+        return String::from("long long ago")
+    }
+    if date.contains(".") {
+        return date;
+    }
+    
+    format!("today, {}", date)
 }
