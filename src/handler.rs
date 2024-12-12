@@ -1,8 +1,10 @@
+use std::collections::HashMap;
 use crate::blitzer_api_client::get_blitzer_api_result;
 use crate::model::{BlitzerClientRequestParams, LocationType, Poi};
 use crate::telegram::TelegramBot;
 use crate::{configuration, database};
 use strum::IntoEnumIterator;
+use crate::database::KnownPoi;
 
 pub(crate) async fn handle(telegram_bot: &TelegramBot) -> Result<(), anyhow::Error> {
     println!("Start BlitzerNotifier!");
@@ -24,17 +26,21 @@ pub(crate) async fn handle(telegram_bot: &TelegramBot) -> Result<(), anyhow::Err
     let api_response = get_blitzer_api_result(request_params).await?;
     println!("Found {} pois in the given area", api_response.pois.len());
 
-    let known_pois = database.get_known_poi_backend_ids();
+    let mut known_pois: HashMap<String, KnownPoi> = database.get_known_pois().into_iter()        
+        .map(|known_poi| (known_poi.backend_id.clone(), known_poi)) 
+        .collect();         
+
     let mut new_pois = Vec::new();
     for poi in api_response.pois {
         match poi {
             Poi::Detailed(detailed_poi) => {
-                if known_pois.contains(&detailed_poi.backend) {
+                if let Some(known_poi) = known_pois.remove(&detailed_poi.backend) {
                     println!(
-                        "Found poi in database: {}, {}",
-                        detailed_poi.id, detailed_poi.backend
+                        "Found poi in database: {}, {}. Chat: {}: {}, {}",
+                        detailed_poi.id, detailed_poi.backend, known_poi.chat_id, known_poi.message_id_info, known_poi.message_id_location
                     );
                     continue;
+
                 }
 
                 new_pois.push(detailed_poi);
@@ -43,10 +49,6 @@ pub(crate) async fn handle(telegram_bot: &TelegramBot) -> Result<(), anyhow::Err
                 println!("Found cluster poi.. but skipped: {:?}", cluster_poi)
             }
         }
-    }
-
-    if new_pois.is_empty() {
-        return Ok(());
     }
 
     for poi in new_pois.iter().clone() {
@@ -64,6 +66,13 @@ pub(crate) async fn handle(telegram_bot: &TelegramBot) -> Result<(), anyhow::Err
                 info_message.id,
                 location_message.id,
             );
+    }
+    
+    for known_poi in known_pois.values().clone() {
+        println!("Delete known poi: {:?}", known_poi.backend_id);
+
+        telegram_bot.delete_message(known_poi.chat_id, known_poi.message_id_info, known_poi.message_id_location).await;
+        database.update_last_seen(known_poi.id.clone());
     }
 
     Ok(())

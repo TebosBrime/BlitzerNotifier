@@ -32,18 +32,24 @@ impl Repository {
                 create_date VARCHAR(255) NOT NULL,
                 confirm_date VARCHAR(255) NOT NULL,
                 info_desc TEXT,
-                first_found DATETIME DEFAULT CURRENT_TIMESTAMP,
-                last_found DATETIME DEFAULT NULL,
-                chat_id VARCHAR(255) NOT NULL,
-                message_id_info VARCHAR(255) NOT NULL,
-                message_id_location VARCHAR(255) NOT NULL
+                first_seen DATETIME DEFAULT CURRENT_TIMESTAMP,
+                last_seen DATETIME DEFAULT NULL,
+                chat_id BIGINT NOT NULL,
+                message_id_info INT NOT NULL,
+                message_id_location INT NOT NULL
             )",
         )?;
 
         Ok(Self { connection: conn })
     }
 
-    pub fn add_poi(&mut self, poi: DetailedPoi, chat_id: ChatId, info_message_id: MessageId, location_message_id: MessageId) {
+    pub fn add_poi(
+        &mut self,
+        poi: DetailedPoi,
+        chat_id: ChatId,
+        info_message_id: MessageId,
+        location_message_id: MessageId,
+    ) {
         self.connection.exec_drop(
             r"INSERT INTO known_blitzer (
                     id, lat, lng, address_country, address_state, address_zip_code, address_city,
@@ -78,12 +84,39 @@ impl Repository {
         ).expect("Should write poi to database");
     }
 
-    pub fn get_known_poi_backend_ids(&mut self) -> Vec<String> {
-        let known_blitzer: Vec<String> = self
+    pub fn get_known_pois(&mut self) -> Vec<KnownPoi> {
+        let known_blitzer: Vec<KnownPoi> = self
             .connection
-            .query_map("SELECT backend from known_blitzer", |backend| backend)
+            .query_map(
+                "SELECT id,backend,chat_id,message_id_info,message_id_location from known_blitzer WHERE last_seen IS NULL",
+                |(id, backend_id, chat_id, message_id_info, message_id_location)| KnownPoi {
+                    id,
+                    backend_id,
+                    chat_id,
+                    message_id_info,
+                    message_id_location,
+                },
+            )
             .expect("Should get backend id of poi from database");
 
         known_blitzer
     }
+
+    pub fn update_last_seen(&mut self, poi_id: String) {
+        self.connection.exec_drop(
+            r"UPDATE known_blitzer SET last_seen = CURRENT_TIMESTAMP() WHERE id = :id",
+            params! {
+                "id" => poi_id,
+            }
+        ).expect("Should write poi to database");
+
+    }
+}
+
+pub struct KnownPoi {
+    pub id: String,
+    pub backend_id: String,
+    pub chat_id: i64,
+    pub message_id_info: i32,
+    pub message_id_location: i32,
 }

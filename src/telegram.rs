@@ -1,7 +1,8 @@
 use crate::configuration::{get_telegram_bot_configuration};
 use teloxide::Bot;
-use teloxide::prelude::Message;
+use teloxide::prelude::{ChatId, Message};
 use teloxide::requests::Requester;
+use teloxide::types::MessageId;
 
 pub struct TelegramBot {
     bot: Bot,
@@ -22,6 +23,10 @@ impl TelegramBot {
     
     pub async fn send_location(&self, latitude: f64, longitude: f64) -> Message {
         self.bot.send_location(self.chat_id.clone(), latitude, longitude).await.expect("Should send location")
+    }
+    
+    pub async fn delete_message(&self, chat_id: i64, message_id_info: i32, message_id_location: i32) {
+        self.bot.delete_messages(ChatId(chat_id), vec![MessageId(message_id_info), MessageId(message_id_location)]).await.expect("Should delete message");
     }
 }
 
