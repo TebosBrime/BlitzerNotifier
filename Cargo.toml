@@ -6,6 +6,8 @@ edition = "2021"
 [dependencies]
 tokio = { version = "1.41.1", default-features = false, features = ["rt", "rt-multi-thread", "macros"] }
 reqwest = { version = "0.12.9", default-features = false, features = ["json", "rustls-tls"]}
+reqwest-middleware = "0.4.0"
+reqwest-retry = "0.7.0"
 anyhow = "1.0.93"
 
 serde = { version = "1.0.215", features = ["derive"] }
