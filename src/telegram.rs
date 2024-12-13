@@ -26,7 +26,8 @@ impl TelegramBot {
     }
     
     pub async fn delete_message(&self, chat_id: i64, message_id_info: i32, message_id_location: i32) {
-        self.bot.delete_messages(ChatId(chat_id), vec![MessageId(message_id_info), MessageId(message_id_location)]).await.expect("Should delete message");
+        self.bot.delete_message(ChatId(chat_id), MessageId(message_id_info)).await.expect("Should delete info message");
+        self.bot.delete_message(ChatId(chat_id), MessageId(message_id_location)).await.expect("Should delete location message");
     }
 }
 

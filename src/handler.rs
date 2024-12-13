@@ -29,6 +29,7 @@ pub(crate) async fn handle(telegram_bot: &TelegramBot) -> Result<(), anyhow::Err
     let mut known_pois: HashMap<String, KnownPoi> = database.get_known_pois().into_iter()        
         .map(|known_poi| (known_poi.backend_id.clone(), known_poi)) 
         .collect();         
+    println!("There are {} active pois in the database", known_pois.len());
 
     let mut new_pois = Vec::new();
     for poi in api_response.pois {
@@ -52,7 +53,7 @@ pub(crate) async fn handle(telegram_bot: &TelegramBot) -> Result<(), anyhow::Err
     }
 
     for poi in new_pois.iter().clone() {
-        println!("Found new poi: {:?}", poi);
+        println!("Found new poi: {:?}.. sending telegram message", poi);
         let info_message = telegram_bot.send_message(poi.to_telegram_message()).await;
 
         let latitude = poi.lat.parse::<f64>().expect("Failed to parse latitude");
@@ -69,7 +70,7 @@ pub(crate) async fn handle(telegram_bot: &TelegramBot) -> Result<(), anyhow::Err
     }
     
     for known_poi in known_pois.values().clone() {
-        println!("Delete known poi: {:?}", known_poi.backend_id);
+        println!("Poi {:?} is now inactive.. going to delete messages", known_poi.backend_id);
 
         telegram_bot.delete_message(known_poi.chat_id, known_poi.message_id_info, known_poi.message_id_location).await;
         database.update_last_seen(known_poi.id.clone());
