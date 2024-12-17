@@ -25,7 +25,7 @@ curl https://cdn2.atudo.net/api/4.0/pois.php?z=5&type=0,1,2,3,4,5,6,101,102,103,
 ### Mysql Database
 A Mysql database is needed to ensure that only new points of interest are send.
 
-The services creates a table called `known_blitzer`. It contains all necessary data of a poi (point of interest)
+The service creates a table called `known_blitzer`. It contains all necessary data of a poi (point of interest)
 
 ### Telegram Bot API
 A Telegram bot is used to send a message to a chat. A message is sent if a new poi is found. 
