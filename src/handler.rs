@@ -23,7 +23,7 @@ pub(crate) async fn handle(telegram_bot: &TelegramBot) -> Result<(), anyhow::Err
         location_box,
     };
 
-    let api_response = get_blitzer_api_result(request_params).await?;
+    let api_response = get_blitzer_api_result(&request_params).await?;
     println!("Found {} pois in the given area", api_response.pois.len());
 
     let mut known_pois: HashMap<String, KnownPoi> = database.get_known_pois().into_iter()        

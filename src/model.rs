@@ -1,94 +1,93 @@
+use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
-use std::fmt::Display;
 use serde_variant::to_variant_name;
+use std::fmt::Display;
 use strum_macros::EnumIter;
 
 #[derive(Serialize, Deserialize, EnumIter, Debug)]
 pub enum LocationType {
-    #[serde(rename="0")]
+    #[serde(rename = "0")]
     BlitzerMobile0,
-    #[serde(rename="1")]
+    #[serde(rename = "1")]
     BlitzerMobile1,
-    #[serde(rename="2")]
+    #[serde(rename = "2")]
     BlitzerMobile2,
-    #[serde(rename="3")]
+    #[serde(rename = "3")]
     BlitzerMobile3,
-    #[serde(rename="4")]
+    #[serde(rename = "4")]
     BlitzerMobile4,
-    #[serde(rename="5")]
+    #[serde(rename = "5")]
     BlitzerMobile5,
-    #[serde(rename="6")]
+    #[serde(rename = "6")]
     BlitzerMobile6,
-    #[serde(rename="20")]
+    #[serde(rename = "20")]
     Stauende,
-    #[serde(rename="21")]
+    #[serde(rename = "21")]
     Gefahrenstelle21,
-    #[serde(rename="22")]
+    #[serde(rename = "22")]
     Baustelle22,
-    #[serde(rename="23")]
+    #[serde(rename = "23")]
     Gefahrenstelle23,
-    #[serde(rename="24")]
+    #[serde(rename = "24")]
     Gefahrenstelle24,
-    #[serde(rename="25")]
+    #[serde(rename = "25")]
     Gefahrenstelle25,
-    #[serde(rename="26")]
+    #[serde(rename = "26")]
     Baustelle26,
-    #[serde(rename="29")]
+    #[serde(rename = "29")]
     Gefahrenstelle29,
-    #[serde(rename="101")]
+    #[serde(rename = "101")]
     Blitzer101,
-    #[serde(rename="102")]
+    #[serde(rename = "102")]
     Blitzer102,
-    #[serde(rename="103")]
+    #[serde(rename = "103")]
     Blitzer103,
-    #[serde(rename="104")]
+    #[serde(rename = "104")]
     Blitzer104,
-    #[serde(rename="105")]
+    #[serde(rename = "105")]
     Blitzer105,
-    #[serde(rename="106")]
+    #[serde(rename = "106")]
     Blitzer106,
-    #[serde(rename="107")]
+    #[serde(rename = "107")]
     Blitzer107,
-    #[serde(rename="108")]
+    #[serde(rename = "108")]
     Blitzer108,
-    #[serde(rename="109")]
+    #[serde(rename = "109")]
     Blitzer109,
-    #[serde(rename="110")]
+    #[serde(rename = "110")]
     Blitzer110,
-    #[serde(rename="111")]
+    #[serde(rename = "111")]
     Blitzer111,
-    #[serde(rename="112")]
+    #[serde(rename = "112")]
     Blitzer112,
-    #[serde(rename="113")]
+    #[serde(rename = "113")]
     Blitzer113,
-    #[serde(rename="114")]
+    #[serde(rename = "114")]
     Tunnel,
-    #[serde(rename="115")]
+    #[serde(rename = "115")]
     Blitzer115,
-    #[serde(rename="117")]
+    #[serde(rename = "117")]
     Blitzer117,
-    #[serde(rename="1015")]
+    #[serde(rename = "1015")]
     Kulturguide1015,
-    #[serde(rename="1016")]
+    #[serde(rename = "1016")]
     Kulturguide1016,
-    #[serde(rename="2015")]
+    #[serde(rename = "2015")]
     Hotspot2015,
-    #[serde(rename="ts")]
+    #[serde(rename = "ts")]
     BlitzerTeilstat,
-    #[serde(rename="vwd")]
+    #[serde(rename = "vwd")]
     Polizeimeldung1,
-    #[serde(rename="vwda")]
+    #[serde(rename = "vwda")]
     Polizeimeldung2,
-    #[serde(rename="traffic")]
+    #[serde(rename = "traffic")]
     PolylineTraffic,
-    #[serde(rename="pics")]
+    #[serde(rename = "pics")]
     BlitzerBilder,
 }
 impl LocationType {
     pub fn is_default(&self) -> bool {
-        matches!(self, 
-            | LocationType::Blitzer101
-            | LocationType::Blitzer102
+        matches!(self, |LocationType::Blitzer101| LocationType::Blitzer102
             | LocationType::Blitzer103
             | LocationType::Blitzer104
             | LocationType::Blitzer105
@@ -122,16 +121,19 @@ pub struct BlitzerClientRequestParams {
 }
 
 impl BlitzerClientRequestParams {
-    pub fn get_request_params(&self) -> String {
-        format!(
-            "?z={}&type={}&box={:#}",
-            self.zoom_level,
-            self.types.iter()
-                .map(|t| to_variant_name(t).expect("Should be rename enum value"))
-                .collect::<Vec<_>>()
-                .join(","),
-            self.location_box
-        )
+    pub fn as_query_parameter(&self) -> HashMap<String, String> {
+        [
+            (String::from("z"), self.zoom_level.to_string()),
+            (
+                String::from("type"),
+                self.types
+                    .iter()
+                    .map(|t| to_variant_name(t).expect("Should be rename enum value"))
+                    .collect::<Vec<_>>()
+                    .join(","),
+            ),
+            (String::from("box"), self.location_box.to_string()),
+        ].iter().cloned().collect::<HashMap<String, String>>()
     }
 }
 
@@ -151,7 +153,6 @@ impl Display for LocationBox {
         )
     }
 }
-
 
 // Response
 #[derive(Debug, Deserialize)]
@@ -188,7 +189,7 @@ pub struct DetailedPoi {
 #[derive(Debug, Deserialize)]
 pub struct ClusterPoi {
     pub style: Option<u32>,
-    pub counter: Option<String>, 
+    pub counter: Option<String>,
     pub lat: f64,
     pub lng: f64,
     #[serde(rename = "type")]
@@ -213,25 +214,37 @@ pub struct Info {
 impl DetailedPoi {
     pub fn to_telegram_message(&self) -> String {
         let cloned_poi = self.to_owned();
-        
-        let mut city = format!("{} {}", cloned_poi.address.zip_code, cloned_poi.address.city);
+
+        let mut city = format!(
+            "{} {}",
+            cloned_poi.address.zip_code, cloned_poi.address.city
+        );
         if !&cloned_poi.address.city_district.is_empty() {
             city = format!("{city} ({})", cloned_poi.address.city_district);
         }
-        
+
         let poi_type: LocationType = serde_json::from_str(&format!("\"{}\"", cloned_poi.poi_type))
             .expect("Invalid value for LocationType");
-        
+
         let mut base_message = format!("Attention: A new point of interest found at {city}: \n\nAddress: {}\nType: {:?}\nMax speed: {}",
                                        cloned_poi.address.street,
                                        poi_type,
                                        cloned_poi.vmax
         );
-        
+
         if cloned_poi.info.desc.is_some() {
-            base_message = format!("{} \n\nAdditional info: {}", base_message, cloned_poi.info.desc.unwrap());
+            base_message = format!(
+                "{} \n\nAdditional info: {}",
+                base_message,
+                cloned_poi.info.desc.unwrap()
+            );
         }
-        base_message = format!("{} \nCreated {}, Confirmed: {}", base_message, format_date(cloned_poi.create_date), format_date(cloned_poi.confirm_date));
+        base_message = format!(
+            "{} \nCreated {}, Confirmed: {}",
+            base_message,
+            format_date(cloned_poi.create_date),
+            format_date(cloned_poi.confirm_date)
+        );
 
         base_message
     }
@@ -239,11 +252,11 @@ impl DetailedPoi {
 
 fn format_date(date: String) -> String {
     if date.eq("01.01.1970") {
-        return String::from("long long ago")
+        return String::from("long long ago");
     }
     if date.contains(".") {
         return date;
     }
-    
+
     format!("today, {}", date)
 }
