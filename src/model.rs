@@ -87,7 +87,8 @@ pub enum LocationType {
 }
 impl LocationType {
     pub fn is_default(&self) -> bool {
-        matches!(self, |LocationType::Blitzer101| LocationType::Blitzer102
+        matches!(self, |LocationType::Blitzer101
+            | LocationType::Blitzer102
             | LocationType::Blitzer103
             | LocationType::Blitzer104
             | LocationType::Blitzer105
@@ -239,10 +240,11 @@ impl DetailedPoi {
             );
         }
         base_message = format!(
-            "{} \nCreated {}, Confirmed: {}",
+            "{} \nCreated {}, Confirmed: {}, BackendId: {}",
             base_message,
             format_date(cloned_poi.create_date),
-            format_date(cloned_poi.confirm_date)
+            format_date(cloned_poi.confirm_date),
+            cloned_poi.backend
         );
 
         base_message
