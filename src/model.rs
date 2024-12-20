@@ -109,8 +109,7 @@ impl LocationType {
             | LocationType::BlitzerMobile3
             | LocationType::BlitzerMobile4
             | LocationType::BlitzerMobile5
-            | LocationType::BlitzerMobile6
-            | LocationType::Polizeimeldung1)
+            | LocationType::BlitzerMobile6)
     }
 }
 
